@@ -1,0 +1,304 @@
+openapi: 3.0.3
+info:
+  title: User Control Service
+  description: API для управления пользователями (регистрация, вход, профиль)
+  version: 0.0.1
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /auth/register:
+    post:
+      summary: Регистрация нового пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        "201":
+          description: Пользователь успешно зарегистрирован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    maxLength: 300
+                    description: Токен доступа для дальнейших запросов.
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlByb2QgUHJvZG92aWNoIiwiaWF0IjoxNTE2MjM5MDIyfQ.zqNHgTZOlgb0n5KDT2kPET4dOKnkrxJP5Kz6LhIGRiY"
+                  user_id:
+                    $ref: "#/components/schemas/UserId"
+        "400":
+          $ref: "#/components/responses/Response400"
+        "409":
+          $ref: "#/components/responses/EmailAlreadyRegistred"
+  
+  /auth/login:
+    post:
+      summary: Вход в систему
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        "200":
+          description: Успешный вход, возвращает JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        "401":
+          description: Неверные учетные данные
+
+  /users/me:
+    get:
+      summary: Получить данные текущего пользователя
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Данные пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        "401":
+          description: Требуется авторизация
+    
+    patch:
+      summary: Обновить данные профиля
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        "200":
+          description: Данные обновлены
+        "400":
+          description: Ошибка валидации
+        "401":
+          description: Требуется авторизация
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    UserId:
+      readOnly: true
+      type: string
+      format: uuid
+      description: Уникальный идентификатор пользователя.
+      example: da3ad08d-9b86-41ff-ad70-a30a64d3d170
+    
+    RegisterRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        invite:
+          type: string
+        fio:
+          type: string
+        birthday:
+          type: string
+          format: date
+        school:
+          type: string
+        grade:
+          type: integer
+        tech_interests:
+          type: string
+        interests:
+          type: string
+        avatar:
+          type: string
+          format: uri
+        vk:
+          type: string
+        tg:
+          type: string
+        git:
+          type: string
+        facebook:
+          type: string
+      required:
+        - email
+        - password
+        - invite
+        - fio
+        - birthday
+        - school
+        - grade
+    
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+      required:
+        - email
+        - password
+    
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user_id:
+          $ref: "#/components/schemas/UserId"
+    
+    UserProfile:
+      description: Профиль пользователя
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        invite:
+          type: string
+        fio:
+          type: string
+        birthday:
+          type: string
+          format: date
+        school:
+          type: string
+        grade:
+          type: integer
+        tech_interests:
+          type: string
+        interests:
+          type: string
+        avatar:
+          type: string
+          format: uri
+        vk:
+          type: string
+        tg:
+          type: string
+        git:
+          type: string
+        facebook:
+          type: string
+    
+    UpdateProfileRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        invite:
+          type: string
+        fio:
+          type: string
+        birthday:
+          type: string
+          format: date
+        school:
+          type: string
+        grade:
+          type: integer
+        tech_interests:
+          type: string
+        interests:
+          type: string
+        avatar:
+          type: string
+          format: uri
+        vk:
+          type: string
+        tg:
+          type: string
+        git:
+          type: string
+        facebook:
+          type: string
+          
+  responses:
+    Response400:
+      description: Ошибка в данных запроса. Например, несоответствие ожидаемому формату или не несоблюдение ограничений (на длину, на допустимые символы, ...).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: "error"
+              message:
+                type: string
+                example: "Ошибка в данных запроса."
+    SignIn200:
+      description: Успешная аутентификация.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+                maxLength: 300
+                description: Токен доступа для авторизованных запросов. После успешной аутентификации СТАРЫЕ ТОКЕНЫ ПЕРЕСТАЮТ РАБОТАТЬ.
+                example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlByb2QgUHJvZG92aWNoIiwiaWF0IjoxNTE2MjM5MDIyfQ.zqNHgTZOlgb0n5KDT2kPET4dOKnkrxJP5Kz6LhIGRiY"
+    SignIn401:
+      description: Неверный email или пароль.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: "error"
+              message:
+                type: string
+                example: "Неверный email или пароль."
+    NoAuth401:
+      description: Пользователь не авторизован.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: "error"
+              message:
+                type: string
+                example: "Пользователь не авторизован."
+    EmailAlreadyRegistred:
+      description: Такой email уже зарегистрирован в системе
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: "error"
+              message:
+                type: string
+                example: "Такой email уже зарегистрирован."
