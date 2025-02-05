@@ -86,6 +86,19 @@ paths:
           description: Ошибка валидации
         "401":
           description: Требуется авторизация
+  
+  /users/verify-token:
+    post:
+      summary: Проверка токена пользователя, используется другими миросервисами
+      parameters:
+        - $ref: "#/components/parameters/AuthorizationHeader"
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          $ref: "#/components/responses/ValidTokenResponse200"
+        "401":
+          $ref: "#/components/responses/InvalidTokenResponse401"
 
 components:
   securitySchemes:
@@ -263,6 +276,38 @@ components:
                 maxLength: 300
                 description: Токен доступа для авторизованных запросов. После успешной аутентификации СТАРЫЕ ТОКЕНЫ ПЕРЕСТАЮТ РАБОТАТЬ.
                 example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlByb2QgUHJvZG92aWNoIiwiaWF0IjoxNTE2MjM5MDIyfQ.zqNHgTZOlgb0n5KDT2kPET4dOKnkrxJP5Kz6LhIGRiY"
+                
+    ValidTokenResponse200:
+      description: Token is valid, returning user details and permissions
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              valid:
+                type: boolean
+                example: true
+              user_id:
+                type: string
+                format: uuid
+              role:
+                type: string
+                example: "admin"
+    
+    InvalidTokenResponse401:
+      description: Invalid or expired token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              valid:
+                type: boolean
+                example: false
+              error:
+                type: string
+                example: "Invalid token"
+    
     SignIn401:
       description: Неверный email или пароль.
       content:
@@ -276,6 +321,7 @@ components:
               message:
                 type: string
                 example: "Неверный email или пароль."
+                
     NoAuth401:
       description: Пользователь не авторизован.
       content:
@@ -289,6 +335,7 @@ components:
               message:
                 type: string
                 example: "Пользователь не авторизован."
+    
     EmailAlreadyRegistred:
       description: Такой email уже зарегистрирован в системе
       content:
@@ -302,3 +349,14 @@ components:
               message:
                 type: string
                 example: "Такой email уже зарегистрирован."
+  parameters:
+    AuthorizationHeader:
+      name: Authorization
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 5
+        maxLength: 300
+      description: Токен доступа - "Bearer {token}".
+      example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlByb2QgUHJvZG92aWNoIiwiaWF0IjoxNTE2MjM5MDIyfQ.zqNHgTZOlgb0n5KDT2kPET4dOKnkrxJP5Kz6LhIGRiY"
