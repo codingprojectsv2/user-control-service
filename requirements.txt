@@ -1,0 +1,7 @@
+fastapi[standard]~=0.115.8
+tortoise-orm~=0.24.0
+python-jose[cryptography]~=3.3.0
+python-dotenv~=1.0.1
+passlib~=1.7.4
+asyncpg~=0.30.0
+aerich[toml]~=0.8.1
